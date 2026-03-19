@@ -6,6 +6,7 @@ const cors = require("cors");
 const User = require("./Users");
 const Movie = require("./Movies"); 
 require("dotenv").config(); // Load environment variables from .env file
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
