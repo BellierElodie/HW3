@@ -16,7 +16,6 @@ connectDB();
 
 
 //Review schema
-module.exports = mongoose.model('Movie', MovieSchema);
 
 const reviewSchema = new mongoose.Schema({
   movieId: { type: mongoose.Schema.Types.ObjectId, ref: 'Movie' },
@@ -27,4 +26,4 @@ const reviewSchema = new mongoose.Schema({
 
 reviewSchema.index({movieId: 1, username: 1}, {unique: true});
 
-module.exports = mongoose.model('Review', MovieSchema);
+module.exports = mongoose.model('Review', reviewSchema);
