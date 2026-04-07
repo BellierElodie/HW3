@@ -5,6 +5,7 @@ const authJwtController = require("./auth_jwt");
 const cors = require("cors");
 const User = require("./Users");
 const Movie = require("./Movies"); 
+const Review = require("./Reviews");
 require("dotenv").config(); // Load environment variables from .env file
 const jwt = require("jsonwebtoken");
 
@@ -222,3 +223,51 @@ app.listen(PORT, () => {
 });
 
 module.exports = app; // for testing only
+
+
+router.route('/reviews')
+  .get(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      const reviews = await Review.find({});
+      return res.json(reviews);
+    } catch(err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error retrieving reviews',
+        error: err.message
+      });
+    }
+  })
+
+  .post(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      const review = new Review({
+        movieID: req.body.movieId,
+        username: req.user.username,
+        review: req.body.review,
+        rating: req.body.rating
+      });
+
+      await review.save();
+
+      return res.status(201).json({
+        success: true,
+        message: 'Review created!',
+        review: review
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: "A review with that ID already exisits"
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: "Error creating review",
+        error: err.message
+      });
+    }
+  })
+
