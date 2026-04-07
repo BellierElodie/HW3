@@ -242,7 +242,7 @@ router.route('/reviews')
   .post(authJwtController.isAuthenticated, async (req, res) => {
     try {
       const review = new Review({
-        movieID: req.body.movieId,
+        movieId: req.body.movieId,
         username: req.user.username,
         review: req.body.review,
         rating: req.body.rating
@@ -271,3 +271,50 @@ router.route('/reviews')
     }
   })
 
+
+  router.route('/movies')
+    .get(authJwtController.isAuthenticated, async (req, res) => {
+      try {
+        if (req.query.reviews === "true") {
+          const movies = await Movie.aggregate([
+            {
+              $lookup: {
+                from: "reviews",
+                localField: "_id",
+                foreignField: "movieId",
+                as: "reviews"
+              }
+            },
+            {
+              $addFields: {
+                avgRating: {
+                  $cond: {
+                    if: { $gt: [{$size: "$reviews"}, 0]},
+                    then: { $avg: "$reviews.rating"},
+                    else: null
+                  }
+                }
+              }
+            },
+            {
+              $sort: {
+                avgRating: -1,
+                title: 1
+              }
+            }
+          ]);
+
+          return res.json(movies);
+        } else {
+          const movies = (await Movie.find()).toSorted({title: 1});
+          return res.json(movies);
+        }
+      } catch (err) {
+        return res.status(500).json({
+          success: false,
+          message: "Error retrieving movies",
+          error: err.message
+        });
+
+      }
+    })
