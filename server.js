@@ -5,7 +5,7 @@ const authJwtController = require("./auth_jwt");
 const cors = require("cors");
 const User = require("./Users");
 const Movie = require("./Movies"); 
-const Review = require("./Reviews");
+//const Review = require("./Reviews");
 require("dotenv").config(); // Load environment variables from .env file
 const jwt = require("jsonwebtoken");
 
