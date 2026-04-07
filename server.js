@@ -276,46 +276,54 @@ router.route('/reviews')
     .get(authJwtController.isAuthenticated, async (req, res) => {
       try {
         const movieId = req.params.id;
-        if (req.query.reviews === "true") {
-          const movies = await Movie.aggregate([
-            {
-              $match: { _id: new mongoose.Types.ObjectId(movieId) }
-            },
-            {
-              $lookup: {
-                from: "reviews",
-                localField: "_id",
-                foreignField: "movieId",
-                as: "reviews"
-              }
-            },
-            {
-              $addFields: {
-                avgRating: {
-                  $avg: "$reviews.rating"
-                  }
-                }
-              
-            },
-            {
-              $sort: {
-                avgRating: -1,
-                title: 1
-              }
-            }
-          ]);
 
-          return res.json(movies);
-        } else {
-          const movies = (await Movie.find()).sort({title: 1});
-          return res.json(movies);
+    if (req.query.reviews === "true") {
+      // Aggregate to include reviews
+      const movies = await Movie.aggregate([
+        {
+          $match: { _id: new mongoose.Types.ObjectId(movieId) }
+        },
+        {
+          $lookup: {
+            from: "reviews",       // exact collection name
+            localField: "_id",
+            foreignField: "movieId",
+            as: "reviews"
+          }
+        },
+        {
+          $addFields: {
+            avgRating: { $avg: "$reviews.rating" }
+          }
         }
-      } catch (err) {
-        return res.status(500).json({
-          success: false,
-          message: "Error retrieving movies",
-          error: err.message
-        });
+      ]);
 
+      if (!movies || movies.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Movie not found"
+        });
       }
-    })
+
+      return res.json(movies[0]); // only one movie
+    } else {
+      // Just return the movie without reviews
+      const movie = await Movie.findById(movieId);
+      if (!movie) {
+        return res.status(404).json({
+          success: false,
+          message: "Movie not found"
+        });
+      }
+      return res.json(movie);
+    }
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Error retrieving movie",
+      error: err.message
+    });
+  }
+});
+
+module.exports = router;
