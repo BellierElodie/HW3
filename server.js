@@ -272,11 +272,15 @@ router.route('/reviews')
   })
 
 
-  router.route('/movies')
+  router.route('/movies/:id')
     .get(authJwtController.isAuthenticated, async (req, res) => {
       try {
+        const movieId = req.params.id;
         if (req.query.reviews === "true") {
           const movies = await Movie.aggregate([
+            {
+              $match: { _id: new mongoose.Types.ObjectId(movieId) }
+            },
             {
               $lookup: {
                 from: "reviews",
