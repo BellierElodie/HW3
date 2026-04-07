@@ -288,13 +288,10 @@ router.route('/reviews')
             {
               $addFields: {
                 avgRating: {
-                  $cond: {
-                    if: { $gt: [{$size: "$reviews"}, 0]},
-                    then: { $avg: "$reviews.rating"},
-                    else: null
+                  $avg: "$reviews.rating"
                   }
                 }
-              }
+              
             },
             {
               $sort: {
