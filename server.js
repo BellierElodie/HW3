@@ -8,6 +8,7 @@ const Movie = require("./Movies");
 const Review = require("./Reviews");
 require("dotenv").config(); // Load environment variables from .env file
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 const app = express();
 
