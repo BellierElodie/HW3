@@ -306,7 +306,7 @@ router.route('/reviews')
 
           return res.json(movies);
         } else {
-          const movies = (await Movie.find()).toSorted({title: 1});
+          const movies = (await Movie.find()).sort({title: 1});
           return res.json(movies);
         }
       } catch (err) {
