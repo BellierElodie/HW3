@@ -274,14 +274,16 @@ router.route('/reviews')
 
 
   router
-  .route("/movies/:title")
+  .route("/movies/:movieId")
   .get(authJwtController.isAuthenticated, async (req, res) => {
     try {
+      const movieId = new mongoose.Types.ObjectId(req.params.movieId);
+
       if (req.query.reviews === "true") {
         const movies = await Movie.aggregate([
           {
             $match: {
-              title: { $regex: `^${req.params.title}$`, $options: "i" }
+              _id: movieId
             }
           },
           {
@@ -294,7 +296,7 @@ router.route('/reviews')
           },
           {
             $addFields: {
-              avgRating: { $avg: "$reviews.rating"}
+              avgRating: { $avg: "$reviews.rating" }
             }
           }
         ]);
@@ -309,9 +311,7 @@ router.route('/reviews')
         return res.json(movies[0]);
       }
 
-      const movie = await Movie.findOne({
-        title: { $regex: `^${req.params.title}$`, $options: "i" }
-      });
+      const movie = await Movie.findById(movieId);
 
       if (!movie) {
         return res.status(404).json({
@@ -319,7 +319,9 @@ router.route('/reviews')
           message: "Movie not found"
         });
       }
-    return res.json(movie);
+
+      return res.json(movie);
+
     } catch (err) {
       return res.status(500).json({
         success: false,
@@ -328,4 +330,3 @@ router.route('/reviews')
       });
     }
   });
-
