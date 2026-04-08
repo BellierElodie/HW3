@@ -273,58 +273,59 @@ router.route('/reviews')
   })
 
 
-  router.route('/movies/:id')
-    .get(authJwtController.isAuthenticated, async (req, res) => {
-      try {
-        const movieId = req.params.id;
+  router
+  .route("/movies/:title")
+  .get(authJwtController.isAuthenticated, async (req, res) => {
+    try {
+      if (req.query.reviews === "true") {
+        const movies = await Movie.aggregate([
+          {
+            $match: {
+              title: { $regex: `^${req.params.title}$`, $options: "i" }
+            }
+          },
+          {
+            $lookup: {
+              from: "reviews",
+              localField: "_id",
+              foreignField: "movieId",
+              as: "reviews"
+            }
+          },
+          {
+            $addFields: {
+              avgRating: { $avg: "$reviews.rating"}
+            }
+          }
+        ]);
 
-    if (req.query.reviews === "true") {
-      // Aggregate to include reviews
-      const movies = await Movie.aggregate([
-        {
-          $match: { _id: new mongoose.Types.ObjectId(movieId) }
-        },
-        {
-          $lookup: {
-            from: "reviews",       // exact collection name
-            localField: "_id",
-            foreignField: "movieId",
-            as: "reviews"
-          }
-        },
-        {
-          $addFields: {
-            avgRating: { $avg: "$reviews.rating" }
-          }
+        if (!movies || movies.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Movie not found"
+          });
         }
-      ]);
 
-      if (!movies || movies.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: "Movie not found"
-        });
+        return res.json(movies[0]);
       }
 
-      return res.json(movies[0]); // only one movie
-    } else {
-      // Just return the movie without reviews
-      const movie = await Movie.findById(movieId);
+      const movie = await Movie.findOne({
+        title: { $regex: `^${req.params.title}$`, $options: "i" }
+      });
+
       if (!movie) {
         return res.status(404).json({
           success: false,
           message: "Movie not found"
         });
       }
-      return res.json(movie);
+    return res.json(movie);
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Server error",
+        error: err.message
+      });
     }
-  } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: "Error retrieving movie",
-      error: err.message
-    });
-  }
-});
+  });
 
-module.exports = router;
