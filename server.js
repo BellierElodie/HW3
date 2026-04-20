@@ -300,7 +300,7 @@ router
       });
     }
   })
-  .post(authJwtController.isAuthenticated, async (req, res) => {
+  .post(authJwtController.isAuthenticated, async (req, res) => { //added this block and reviews +movie started working
     try {
       if (!req.body.movieId || !req.body.review || req.body.rating === undefined) {
         return res.status(400).json({ success: false, message: "movieId, review, and rating are required." });
@@ -329,56 +329,6 @@ router
       res.status(500).json({ success: false, message: "Something went wrong." });
     }
   });
-
-router.delete(
-  "/reviews/:id",
-  authJwtController.isAuthenticated,
-  async (req, res) => {
-    try {
-      const deletedReview = await Review.findByIdAndDelete(req.params.id);
-
-      if (!deletedReview) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Review not found" });
-      }
-
-      res.json({ message: "Review deleted!" });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, message: "Error deleting review" });
-    }
-  }
-);
-
-router.delete(
-  "/reviews/movie/:title",
-  authJwtController.isAuthenticated,
-  async (req, res) => {
-    try {
-      const movie = await Movie.findOne({
-        title: { $regex: `^${req.params.title}$`, $options: "i" },
-      });
-
-      if (!movie) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Movie not found" });
-      }
-
-      const result = await Review.deleteMany({ movieId: movie._id });
-
-      res.json({
-        success: true,
-        message: "Reviews deleted successfully",
-        deletedCount: result.deletedCount,
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, message: "Error deleting reviews" });
-    }
-  }
-);
 
 
 app.use("/", router);
