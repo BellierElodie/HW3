@@ -17,18 +17,35 @@ connectDB();
 // Movie schema
 const MovieSchema = new mongoose.Schema({
   title: { type: String, required: true, index: true },
-  releaseDate: { type: Number, min: [1900, 'Must be greater than 1899'], max: [2100, 'Must be less than 2100']},
+  releaseDate: {
+    type: Number,
+    min: [1900, 'Must be greater than 1899'],
+    max: [2100, 'Must be less than 2100']
+  },
   genre: {
     type: String,
     enum: [
-      'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Thriller', 'Western', 'Science Fiction'
+      'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy',
+      'Horror', 'Mystery', 'Thriller', 'Western', 'Science Fiction'
     ],
+    required: true
   },
-  actors: [{
-    actorName: String,
-    characterName: String,
-  }],
-  imageURL: String,
+  actors: {
+    type: [
+      {
+        actorName: { type: String, required: true },
+        characterName: { type: String, required: true }
+      }
+    ],
+    required: true,
+    validate: {
+      validator: function(v) {
+        return Array.isArray(v) && v.length > 0;
+      },
+      message: 'A movie must have at least one actor.'
+    }
+  },
+  imageUrl: { type: String }
 });
 
 

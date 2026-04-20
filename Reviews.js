@@ -1,27 +1,15 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-require('dotenv').config();
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.DB);
-    console.log("Connected to MongoDB");
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    process.exit(1); // Exit the process if the connection fails (optional)
-  }
-};
-
-connectDB();
-
+mongoose.connect(process.env.DB);
 
 //Review schema
 
 const reviewSchema = new mongoose.Schema({
-  movieId: { type: mongoose.Schema.Types.ObjectId, ref: 'Movie' },
+  movieId: { type: mongoose.Schema.Types.ObjectId, ref: 'Movie', required: true },
   username: {type: String, required: true},
-  review: String,
-  rating: { type: Number, min: 0, max: 5 }
+  review: {type: String, required: true},
+  rating: { type: Number, min: 0, max: 5, required: true }
 });
 
 reviewSchema.index({movieId: 1, username: 1}, {unique: true});
